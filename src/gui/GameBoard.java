@@ -101,43 +101,34 @@ public class GameBoard extends JFrame {
 	}
 	
 	private void putTile(int i) {	
-		boolean doIt = false;
-		if(!(board[i].getText().equals("Figura1") || board[i].getText().equals("Figura2"))){
-			/*if(playGame.getNmbr() == 1) {
-				if((board[i].getBackground()).equals(Color.RED))
-					doIt = false;
-				else
-					doIt = true;
-			}
-			else{
-				if((board[i].getBackground()).equals(Color.BLUE))
-					doIt = false;
-				else
-					doIt = true;
-			}		*/
-			doIt = true;
-		}
 		
-		if(doIt ) {
-			/*if(playGame.getNmbr() == 1 )
-				board[i].setBackground(Color.BLUE);
-			else
-				board[i].setBackground(Color.RED);*/
+		if(!(board[i].getText().equals("Figura1") || board[i].getText().equals("Figura2"))){			
+		
+			if(FromTo(playGame.getTo(), i)) {				
 			
-			if(!board[i].getText().equals("KUPOLA")) {
-				clicks[i]++;
-				board[i].setBackground(Color.BLUE);
-			}	
+				if(!board[i].getText().equals("KUPOLA")) {
+					clicks[i]++;
+					board[i].setBackground(Color.BLUE);
+				}	
+				
+				if(clicks[i] == 4) {
+					board[i].setText("KUPOLA");
+					board[i].setForeground(Color.WHITE);
+					board[i].setBackground(Color.RED);
+				}
+				else
+					board[i].setText(""+ clicks[i]);	
+				playGame.setDoTiles(false);
+				playGame.setFrom(-1);
+				playGame.setTo(-1);
+				playGame = boardInfo.getNextPlayer();
+				
+				if(!checkForAnotherMove(playGame.getFigurePositions()[0]) &&  !checkForAnotherMove(playGame.getFigurePositions()[1])) 	
+					new GameEndInfo("Izgubio je igrac: " + playGame.getName(), board);			
 			
-			if(clicks[i] == 4) {
-				board[i].setText("KUPOLA");
-				board[i].setForeground(Color.WHITE);
-				board[i].setBackground(Color.RED);
+			}else {
+				new Error("Ne moze se ovde postaviti plocica! Izaberite drugo polje!");
 			}
-			else
-				board[i].setText(""+ clicks[i]);	
-			playGame.setDoTiles(false);
-			playGame = boardInfo.getNextPlayer();	
 		}else {
 			new Error("Ne moze se ovde postaviti plocica! Izaberite drugo polje!");
 		}
@@ -146,14 +137,14 @@ public class GameBoard extends JFrame {
 	
 	private void moveFigure(int i) {		
 		if(playGame.getFrom() == -1) {
+			
 			if((playGame.getNmbr() == 1 && board[i].getText().equals("Figura1")) || 
 					(playGame.getNmbr() == 2 && board[i].getText().equals("Figura2"))){						
 				playGame.setFrom(i);
 			}
 			else {
 				new Error("Izaberite Vasu figuru!");
-			}
-			
+			}		
 			
 		}else {
 			if(!(board[i].getText().equals("Figura1") || board[i].getText().equals("Figura2"))){
@@ -163,18 +154,24 @@ public class GameBoard extends JFrame {
 					
 					board[i].setText(board[playGame.getFrom()].getText());
 					board[playGame.getFrom()].setText("");
+					
+					if(clicks[i] == 3)
+						new GameEndInfo("Igrac " + playGame.getName() + " je pobedio!", board);
+					
 					playGame.setFigureIsMoved(true);
+					
 					if(board[playGame.getFrom()].getBackground().equals(Color.BLUE)){
 						board[playGame.getFrom()].setText(clicks[playGame.getFrom()]+"");
 					}
+					
+					playGame.newFigurePosition(playGame.getFrom(), playGame.getTo());
+					
+					
 				}else {
 					if(!OK)
 						new Error("Odredisno polje nije dobro izabrano!");
-					else {
-						if(!checkForDifferentMove(playGame.getFrom())) 	
-							new GameEndInfo("Izgubio je igrac: " + playGame.getName());
-						else
-							new Error("Pokusajte ponovo");
+					else {						
+						new Error("Pokusajte ponovo");
 					}	
 				}
 			}
@@ -185,56 +182,77 @@ public class GameBoard extends JFrame {
 	}
 	
 	
-	private boolean checkForDifferentMove(int from) {
+	private boolean checkForAnotherMove(int from) {
 		int level = clicks[from];
-		if(from == 0) {
-			if( level == clicks[1] || (level == clicks[1] + 1) || !(board[1].getText().equals("KUPOLA")) || level == clicks[6] || (level == clicks[6] + 1)
-					|| !(board[6].getText().equals("KUPOLA")) || level == clicks[5] || (level == clicks[5] + 1) ||  !(board[5].getText().equals("KUPOLA")) )
-				return true;
-		}else if(from == 4) {
-			if( level == clicks[3] || (level == clicks[3] + 1) || !(board[3].getText().equals("KUPOLA")) || level == clicks[8] || (level == clicks[8] + 1)
-			|| !(board[8].getText().equals("KUPOLA")) || level == clicks[9] || (level == clicks[9] + 1) ||  !(board[9].getText().equals("KUPOLA")) )
-			
-				return true;
-		}else if(from == 20) {
-			if( level == clicks[15] || (level == clicks[15] + 1) || !(board[15].getText().equals("KUPOLA")) || level == clicks[16] || (level == clicks[16] + 1)
-					|| !(board[16].getText().equals("KUPOLA")) || level == clicks[15] || (level == clicks[15] + 1) ||  !(board[15].getText().equals("KUPOLA")) )
+		
+		switch(from) {
+			case 0: 
+				if((level == clicks[from + 1] || (level == clicks[from + 1] + 1)) && !(board[from + 1].getText().equals("Figura1") || board[from + 1].getText().equals("Figura2") || board[from + 1].getText().equals("KUPOLA")) 
+				 ||(level == clicks[from + 5] || (level == clicks[from + 5] + 1)) && !(board[from + 5].getText().equals("Figura1") || board[from + 5].getText().equals("Figura2") || board[from + 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 6] || (level == clicks[from + 6] + 1)) && !(board[from + 6].getText().equals("Figura1") || board[from + 6].getText().equals("Figura2") || board[from + 6].getText().equals("KUPOLA")) )
+					return true;				
+			break;
+			case 4:
+				if((level == clicks[from - 1] || (level == clicks[from - 1] + 1)) && !(board[from - 1].getText().equals("Figura1") || board[from - 1].getText().equals("Figura2") || board[from - 1].getText().equals("KUPOLA")) 
+				 ||(level == clicks[from + 5] || (level == clicks[from + 5] + 1)) && !(board[from + 5].getText().equals("Figura1") || board[from + 5].getText().equals("Figura2") || board[from + 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 4] || (level == clicks[from + 4] + 1)) && !(board[from + 4].getText().equals("Figura1") || board[from + 4].getText().equals("Figura2") || board[from + 4].getText().equals("KUPOLA")) )
 					return true;
-		}else if(from == 24) {
-			if( level == clicks[23] || (level == clicks[23] + 1) || !(board[23].getText().equals("KUPOLA")) || level == clicks[18] || (level == clicks[18] + 1)
-					|| !(board[18].getText().equals("KUPOLA")) || level == clicks[19] || (level == clicks[19] + 1) ||  !(board[19].getText().equals("KUPOLA")) )
+			break;
+			case 20:
+				if((level == clicks[from + 1] || (level == clicks[from + 1] + 1)) && !(board[from + 1].getText().equals("Figura1") || board[from + 1].getText().equals("Figura2") || board[from + 1].getText().equals("KUPOLA")) 
+				 ||(level == clicks[from - 5] || (level == clicks[from - 5] + 1)) && !(board[from - 5].getText().equals("Figura1") || board[from - 5].getText().equals("Figura2") || board[from - 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 4] || (level == clicks[from - 4] + 1)) && !(board[from - 4].getText().equals("Figura1") || board[from - 4].getText().equals("Figura2") || board[from - 4].getText().equals("KUPOLA")) )
 					return true;
-		}else if(from == 1 || from == 2 || from == 3) {
-			if( level == clicks[from - 1] || (level == clicks[from - 1] + 1) || !(board[from - 1].getText().equals("KUPOLA")) || level == clicks[from + 6] || (level == clicks[from + 6] + 1)
-					|| !(board[from + 6].getText().equals("KUPOLA")) || level == clicks[from + 5] || (level == clicks[from + 5] + 1) ||  !(board[from + 5].getText().equals("KUPOLA"))
-							|| level == clicks[from + 1] || (level == clicks[from + 1] + 1) || !(board[from + 1].getText().equals("KUPOLA"))|| level == clicks[from + 4] || (level == clicks[from + 4] + 1) || !(board[from + 4].getText().equals("KUPOLA")) )
+			break;
+			case 24:
+				if((level == clicks[from - 1] || (level == clicks[from - 1] + 1)) && !(board[from - 1].getText().equals("Figura1") || board[from - 1].getText().equals("Figura2") || board[from - 1].getText().equals("KUPOLA")) 
+				 ||(level == clicks[from - 5] || (level == clicks[from - 5] + 1)) && !(board[from - 5].getText().equals("Figura1") || board[from - 5].getText().equals("Figura2") || board[from - 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 6] || (level == clicks[from - 6] + 1)) && !(board[from - 6].getText().equals("Figura1") || board[from - 6].getText().equals("Figura2") || board[from - 6].getText().equals("KUPOLA")) )
 					return true;
-		}else if(from == 21 || from == 22 || from == 23) {
-			if( level == clicks[from - 1] || (level == clicks[from - 1] + 1) || !(board[from - 1].getText().equals("KUPOLA"))  || level == clicks[from - 5] || (level == clicks[from - 5] + 1) ||  !(board[from - 5].getText().equals("KUPOLA"))
-							|| level == clicks[from + 1] || (level == clicks[from + 1] + 1) || !(board[from + 1].getText().equals("KUPOLA")) || level == clicks[from - 6] || (level == clicks[from - 6] + 1)
-								|| !(board[from - 6].getText().equals("KUPOLA")) || level == clicks[from - 5] || (level == clicks[from - 5] + 1) ||  !(board[from - 5].getText().equals("KUPOLA")))
+			break;
+			case 1: case 2: case 3:
+				if((level == clicks[from + 1] || (level == clicks[from + 1] + 1)) && !(board[from + 1].getText().equals("Figura1") || board[from + 1].getText().equals("Figura2") || board[from + 1].getText().equals("KUPOLA")) 
+				 ||(level == clicks[from - 1] || (level == clicks[from - 1] + 1)) && !(board[from - 1].getText().equals("Figura1") || board[from - 1].getText().equals("Figura2") || board[from - 1].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 5] || (level == clicks[from + 5] + 1)) && !(board[from + 5].getText().equals("Figura1") || board[from + 5].getText().equals("Figura2") || board[from + 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 6] || (level == clicks[from + 6] + 1)) && !(board[from + 6].getText().equals("Figura1") || board[from + 6].getText().equals("Figura2") || board[from + 6].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 4] || (level == clicks[from + 4] + 1)) && !(board[from + 4].getText().equals("Figura1") || board[from + 4].getText().equals("Figura2") || board[from + 4].getText().equals("KUPOLA")) )
 					return true;
-		}else if(from == 5 || from == 10 || from == 15) {
-			if( level == clicks[from - 5] || (level == clicks[from - 5] + 1) || !(board[from - 5].getText().equals("KUPOLA"))  || level == clicks[from + 5] || (level == clicks[from + 5] + 1) ||  !(board[from + 5].getText().equals("KUPOLA"))
-					|| level == clicks[from + 1] || (level == clicks[from + 1] + 1) || !(board[from + 1].getText().equals("KUPOLA")) || level == clicks[from + 6] || (level == clicks[from + 6] + 1)
-						|| !(board[from + 6].getText().equals("KUPOLA")) || level == clicks[from - 4] || (level == clicks[from - 4] + 1) ||  !(board[from - 4].getText().equals("KUPOLA")))
+			break;
+			case 5: case 10: case 15:
+				if((level == clicks[from + 1] || (level == clicks[from + 1] + 1)) && !(board[from + 1].getText().equals("Figura1") || board[from + 1].getText().equals("Figura2") || board[from + 1].getText().equals("KUPOLA")) 
+				 ||(level == clicks[from - 5] || (level == clicks[from - 5] + 1)) && !(board[from - 5].getText().equals("Figura1") || board[from - 5].getText().equals("Figura2") || board[from - 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 5] || (level == clicks[from + 5] + 1)) && !(board[from + 5].getText().equals("Figura1") || board[from + 5].getText().equals("Figura2") || board[from + 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 4] || (level == clicks[from - 4] + 1)) && !(board[from - 4].getText().equals("Figura1") || board[from - 4].getText().equals("Figura2") || board[from - 4].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 4] || (level == clicks[from + 4] + 1)) && !(board[from + 4].getText().equals("Figura1") || board[from + 4].getText().equals("Figura2") || board[from + 4].getText().equals("KUPOLA")) )
 					return true;
-		}else if(from == 19 || from == 9 || from == 14) {
-			if( level == clicks[from - 5] || (level == clicks[from - 5] + 1) || !(board[from - 5].getText().equals("KUPOLA"))  || level == clicks[from + 5] || (level == clicks[from + 5] + 1) ||  !(board[from + 5].getText().equals("KUPOLA"))
-					|| level == clicks[from - 1] || (level == clicks[from - 1] + 1) || !(board[from - 1].getText().equals("KUPOLA")) || level == clicks[from - 6] || (level == clicks[from - 6] + 1)
-						|| !(board[from - 6].getText().equals("KUPOLA")) || level == clicks[from + 4] || (level == clicks[from + 4] + 1) ||  !(board[from + 4].getText().equals("KUPOLA")))
+			break;
+			case 9: case 14: case 19:
+				if((level == clicks[from - 1] || (level == clicks[from - 1] + 1)) && !(board[from - 1].getText().equals("Figura1") || board[from - 1].getText().equals("Figura2") || board[from - 1].getText().equals("KUPOLA")) 
+				 ||(level == clicks[from - 5] || (level == clicks[from - 5] + 1)) && !(board[from - 5].getText().equals("Figura1") || board[from - 5].getText().equals("Figura2") || board[from - 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 5] || (level == clicks[from + 5] + 1)) && !(board[from + 5].getText().equals("Figura1") || board[from + 5].getText().equals("Figura2") || board[from + 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 6] || (level == clicks[from - 6] + 1)) && !(board[from - 6].getText().equals("Figura1") || board[from - 6].getText().equals("Figura2") || board[from - 6].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 4] || (level == clicks[from + 4] + 1)) && !(board[from + 4].getText().equals("Figura1") || board[from + 4].getText().equals("Figura2") || board[from + 4].getText().equals("KUPOLA")) )
 					return true;
-		}else {
-			
-			if( level == clicks[from - 5] || (level == clicks[from - 5] + 1) || !(board[from - 5].getText().equals("KUPOLA"))  
-					|| level == clicks[from - 1] || (level == clicks[from - 1] + 1) || !(board[from - 1].getText().equals("KUPOLA")) 
-					|| level == clicks[from - 6] || (level == clicks[from - 6] + 1)|| !(board[from - 6].getText().equals("KUPOLA")) 
-					|| level == clicks[from + 4] || (level == clicks[from + 4] + 1) ||  !(board[from + 4].getText().equals("KUPOLA"))
-					|| level == clicks[from - 5] || (level == clicks[from - 5] + 1) || !(board[from - 5].getText().equals("KUPOLA"))  
-					|| level == clicks[from + 5] || (level == clicks[from + 5] + 1) ||  !(board[from + 5].getText().equals("KUPOLA"))
-					|| level == clicks[from + 6] || (level == clicks[from + 6] + 1) || !(board[from + 6].getText().equals("KUPOLA"))
-					|| level == clicks[from - 4] || (level == clicks[from - 4] + 1) ||  !(board[from - 4].getText().equals("KUPOLA")))
+			break;
+			case 21: case 22: case 23:
+				if((level == clicks[from + 1] || (level == clicks[from + 1] + 1)) && !(board[from + 1].getText().equals("Figura1") || board[from + 1].getText().equals("Figura2") || board[from + 1].getText().equals("KUPOLA")) 
+				 ||(level == clicks[from - 1] || (level == clicks[from - 1] + 1)) && !(board[from - 1].getText().equals("Figura1") || board[from - 1].getText().equals("Figura2") || board[from - 1].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 5] || (level == clicks[from - 5] + 1)) && !(board[from - 5].getText().equals("Figura1") || board[from - 5].getText().equals("Figura2") || board[from - 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 4] || (level == clicks[from - 4] + 1)) && !(board[from - 4].getText().equals("Figura1") || board[from - 4].getText().equals("Figura2") || board[from - 4].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 6] || (level == clicks[from - 6] + 1)) && !(board[from - 6].getText().equals("Figura1") || board[from - 6].getText().equals("Figura2") || board[from - 6].getText().equals("KUPOLA")) )
 					return true;
+			break;
+			default:
+				if((level == clicks[from - 1] || (level == clicks[from - 1] + 1)) && !(board[from - 1].getText().equals("Figura1") || board[from - 1].getText().equals("Figura2") || board[from - 1].getText().equals("KUPOLA")) 
+				 ||(level == clicks[from + 1] || (level == clicks[from + 1] + 1)) && !(board[from + 1].getText().equals("Figura1") || board[from + 1].getText().equals("Figura2") || board[from + 1].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 5] || (level == clicks[from + 5] + 1)) && !(board[from + 5].getText().equals("Figura1") || board[from + 5].getText().equals("Figura2") || board[from + 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 5] || (level == clicks[from - 5] + 1)) && !(board[from - 5].getText().equals("Figura1") || board[from - 5].getText().equals("Figura2") || board[from - 5].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 6] || (level == clicks[from + 6] + 1)) && !(board[from + 6].getText().equals("Figura1") || board[from + 6].getText().equals("Figura2") || board[from + 6].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 6] || (level == clicks[from - 6] + 1)) && !(board[from - 6].getText().equals("Figura1") || board[from - 6].getText().equals("Figura2") || board[from - 6].getText().equals("KUPOLA"))
+				 ||(level == clicks[from - 4] || (level == clicks[from - 4] + 1)) && !(board[from - 4].getText().equals("Figura1") || board[from - 4].getText().equals("Figura2") || board[from - 4].getText().equals("KUPOLA"))
+				 ||(level == clicks[from + 4] || (level == clicks[from + 4] + 1)) && !(board[from + 4].getText().equals("Figura1") || board[from + 4].getText().equals("Figura2") || board[from + 4].getText().equals("KUPOLA")) )
+					return true;
+			break;
 		}
 		return false;
 	}
@@ -248,8 +266,6 @@ public class GameBoard extends JFrame {
 		else {		
 			
 			if(playGame.isFigureIsMoved()) {
-				playGame.setFrom(-1);
-				playGame.setTo(-1);
 				playGame.setFigureIsMoved(false);
 				playGame.setDoTiles(true);
 			}else if(!(playGame.isDoTiles())) {
@@ -258,14 +274,12 @@ public class GameBoard extends JFrame {
 			
 			if(playGame.isDoTiles()) {
 				putTile(i);
+				
 			}
 		}
 		
 	}
 	
-
-
-
 
 
 	/*
@@ -426,10 +440,7 @@ public class GameBoard extends JFrame {
 
 		
 	}
-	
-	/*
-	 * @getters and setters
-	 */
+
 
 	public JButton getBoutton(int i) {
 		return board[i];
@@ -439,7 +450,7 @@ public class GameBoard extends JFrame {
 		return board;
 	}
 
-	public boolean FromtTo(int to, int from) {
+	public boolean FromTo(int from, int to) {
 		
 		if(from == 0) {
 			if(to == 1 || to == 6 || to == 5 )
@@ -463,7 +474,7 @@ public class GameBoard extends JFrame {
 			if(to == from + 1 || to == from + 5 || to == from - 5 || to == from - 4 || to == from + 6 )
 				return true;
 		}else if(from == 19 || from == 9 || from == 14) {
-			if(to == from + 1 || to == from + 5 || to == from - 5 || to == from + 4 || to == from - 6 )
+			if(to == from - 1 || to == from + 5 || to == from - 5 || to == from + 4 || to == from - 6 )
 				return true;
 		}else {
 			if(to == from + 1 || to ==from - 1 || to == from + 4 || to == from - 4 || to ==from + 6 || to == from - 6 || to == from + 5 || to == from - 5)

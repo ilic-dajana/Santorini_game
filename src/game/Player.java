@@ -11,6 +11,7 @@ public class Player {
 	private int[] figurePositions;
 	private boolean figureIsMoved = false, doTiles = false;
 	private int from, to;
+	private boolean finished = false;
 	
 	public Player(String name, Move move, int n) {
 		super();
@@ -26,6 +27,14 @@ public class Player {
 		myFigures = 2;
 	}
 	
+	public boolean isFinished() {
+		return finished;
+	}
+
+	public void setFinished(boolean finished) {
+		this.finished = finished;
+	}
+
 	public boolean isDoTiles() {
 		return doTiles;
 	}
@@ -45,6 +54,7 @@ public class Player {
 
 
 	public int getTo() {
+		System.out.println(to + " ");
 		return to;
 	}
 
@@ -136,7 +146,14 @@ public class Player {
 	public void setFigurePositions(int pos) {
 		figurePositions[(myFigures + 1) % 2] = pos;
 	}
-
+	public void newFigurePosition(int from, int to) {
+		for(int i = 0; i< 2; i++) {
+			if(figurePositions[i] == from) {
+				figurePositions[i] = to;
+			}
+		}
+		System.out.println(figurePositions[0] + " " + figurePositions[1]);
+	}
 	public int getMyFigures() {
 		return myFigures;
 	}
