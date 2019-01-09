@@ -8,13 +8,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class Error extends JFrame{
-	private String msg="";
+public class Error extends JFrame {
+	private String msg = "";
 	private JFrame frame = new JFrame();
 	private JLabel porukaLabela = new JLabel();
-	
-	
-	
+
 	public Error(String msg) {
 		super();
 		this.msg = msg;
@@ -27,7 +25,7 @@ public class Error extends JFrame{
 		frame.add(panel, new GridBagConstraints());
 		frame.setSize(600, 100);
 		frame.pack();
-		}
+	}
 
 	public String getMsg() {
 		return msg;
@@ -36,7 +34,5 @@ public class Error extends JFrame{
 	public void setMsg(String msg) {
 		this.msg = msg;
 	}
-	
-	
-	
+
 }
