@@ -7,11 +7,16 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 
 import game.Board;
+import players.AdvancedOpponent;
+import players.HumanPlayer;
+import players.Player;
+import players.SimpleOpponent;
+import players.SmartOpponent;
 
 @SuppressWarnings("serial")
 public class StartWindow extends JFrame {
 	private Board board = new Board();
-
+	private Player player1, player2;
 	private JLabel gameType = new JLabel("  Select game type: ");
 	private JRadioButton humanVShuman;
 	private JRadioButton humanVScomputer;
@@ -111,7 +116,10 @@ public class StartWindow extends JFrame {
 		computerVScomputer = new JRadioButton("Computer vs Computer");
 		computerVScomputer.setSelected(true);
 		computerVScomputer.setActionCommand("Computer vs Computer");
-
+		
+		player1 = new HumanPlayer(1);
+		player2 = new HumanPlayer(2);
+		
 		easy = new JRadioButton("easy");
 		easy.setSelected(true);
 		easy.setActionCommand("easy");
@@ -161,19 +169,20 @@ public class StartWindow extends JFrame {
 		difficultyButtons.add(normal);
 		addListeners();
 	}
+	
 	/*
 	 * @listener radio buttons & newGame
 	 */
-
 	private void addListeners() {
 
 		newGame.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
+				board.setP1(player1);
+				board.setP2(player2);
 				board.getP1().setName(playerOneName.getText());
-
 				board.getP2().setName(playerTwoName.getText());
-
 				board.setDificulty(dificultyLvl);
+				
 				new GameBoard(board);
 			}
 		});
@@ -192,6 +201,9 @@ public class StartWindow extends JFrame {
 				hard.setEnabled(false);
 				normal.setEnabled(false);
 				dificultyLvl = -1;
+				player1 = new HumanPlayer(1);
+				player2 = new HumanPlayer(2);
+				board.setBothComputer(false);
 			}
 
 		});
@@ -209,6 +221,9 @@ public class StartWindow extends JFrame {
 				easy.setEnabled(true);
 				hard.setEnabled(true);
 				normal.setEnabled(true);
+				player1 = new HumanPlayer(1);			
+				player2 = new AdvancedOpponent(2);
+				board.setBothComputer(false);
 			}
 
 		});
@@ -226,6 +241,9 @@ public class StartWindow extends JFrame {
 				easy.setEnabled(true);
 				hard.setEnabled(true);
 				normal.setEnabled(true);
+				player1 = new AdvancedOpponent(1);
+				player2 = new AdvancedOpponent(2);
+				board.setBothComputer(true);
 			}
 		});
 
@@ -245,6 +263,18 @@ public class StartWindow extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				dificultyLvl = 2;
 			}
+		});
+		
+		stepBystep.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent arg0) {
+				board.setStepBystep(true);
+			}
+			
+		});
+		allDone.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent arg0) {
+				board.setStepBystep(false);
+			}			
 		});
 
 	}

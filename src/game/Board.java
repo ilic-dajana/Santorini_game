@@ -1,6 +1,9 @@
 package game;
 
 import gui.GameBoard;
+import players.HumanPlayer;
+import players.Opponent;
+import players.Player;
 
 public class Board {
 	private Player p1;
@@ -8,10 +11,10 @@ public class Board {
 	private int dificulty = -1;
 	private boolean nextPlayer;
 	private GameBoard myGame;
+	public boolean isBothComputer = false;
+	public boolean stepBystep = true;
 
 	public Board() {
-		p1 = new Player(null, null, 1);
-		p2 = new Player(null, null, 2);
 		nextPlayer = true;
 	}
 
@@ -39,6 +42,16 @@ public class Board {
 			return "no dificulty";
 		}
 	}
+	
+	
+	
+	public boolean isBothComputer() {
+		return isBothComputer;
+	}
+
+	public void setBothComputer(boolean isBothComputer) {
+		this.isBothComputer = isBothComputer;
+	}
 
 	public GameBoard getMyGame() {
 		return myGame;
@@ -63,9 +76,23 @@ public class Board {
 	public void setP2(Player p2) {
 		this.p2 = p2;
 	}
+	
+	public boolean isStepBystep() {
+		return stepBystep;
+	}
+
+	public void setStepBystep(boolean stepBystep) {
+		this.stepBystep = stepBystep;
+	}
 
 	public void setDificulty(int dificulty) {
 		this.dificulty = dificulty;
+		if(p1 instanceof Opponent) {
+			((Opponent) p1).setDifficulty((dificulty + 1) * 2);
+		}
+		if(p2 instanceof Opponent) {
+			((Opponent) p2).setDifficulty((dificulty + 1) * 2);
+		}
 	}
 
 }

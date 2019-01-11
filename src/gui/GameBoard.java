@@ -6,22 +6,33 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
 import javax.swing.JFrame;
 
 import game.Board;
-import game.Player;
+import game.GameState;
+import game.Move;
+import players.HumanPlayer;
+import players.Opponent;
+import players.Player;
 
 @SuppressWarnings("serial")
 public class GameBoard extends JFrame {
+	
 	private JButton[] board = new JButton[25];
+	private JButton button = new JButton("Sledeci korak");
 	private int[] clicks;
 	private int figure = 0;
 	private Board boardInfo;
 	JLabel next;
 	Player playGame;
-
+	boolean endGame;
+	private Move lastMove;
+	private GameState state;
+	
 	public GameBoard(Board board) {
 		super();
 		this.boardInfo = board;
@@ -31,7 +42,10 @@ public class GameBoard extends JFrame {
 		clicks = new int[25];
 		for (int i = 0; i < 25; i++)
 			clicks[i] = 0;
+		this.endGame = false;
+		lastMove = new Move();
 		drawBoard();
+		
 	}
 
 	private void drawBoard() {
@@ -42,7 +56,7 @@ public class GameBoard extends JFrame {
 		JLabel dif = new JLabel("	Dificulty: " + boardInfo.getDificulty());
 		JPanel table = new JPanel(new GridLayout(5, 5, 1, 1));
 		JPanel labels = new JPanel(new GridLayout(2, 3, 1, 1));
-
+		JPanel buttonPanel = new JPanel();
 		santoriniBoard.setVisible(true);
 		santoriniBoard.setLayout(new BorderLayout());
 		santoriniBoard.setSize(500, 500);
@@ -54,7 +68,9 @@ public class GameBoard extends JFrame {
 		labels.add(next);
 		labels.setSize(100, 500);
 		table.setSize(400, 500);
-
+		buttonPanel.add(button);
+		buttonPanel.setSize(100, 500);
+		
 		pl1.setForeground(Color.BLUE);
 		pl2.setForeground(Color.RED);
 
@@ -73,25 +89,91 @@ public class GameBoard extends JFrame {
 
 		santoriniBoard.add(labels, BorderLayout.NORTH);
 		santoriniBoard.add(table, BorderLayout.CENTER);
+		if(boardInfo.isStepBystep() && boardInfo.isBothComputer)
+			santoriniBoard.add(buttonPanel, BorderLayout.SOUTH);
 
 	}
 
 	public JLabel getNextLabel() {
 		return next;
 	}
+	
+	private void sledeciKorak(int i) {
+		if(playGame.getMyFigures() > 0) {
+			if(playGame instanceof Opponent) {		
+				Random random = new Random();
+				int k = random.nextInt(25) , j = random.nextInt(25);
+				
+				while (board[k].getText().equals("Figura1") || board[k].getText().equals("Figura2") || k==j)
+					k = random.nextInt(25);
+				
+				while (board[j].getText().equals("Figura1") || board[j].getText().equals("Figura2") || k == j)
+					j = random.nextInt(25);
+				
+				board[k].setText("Figura" + playGame.getNmbr());
+				playGame.setFigurePositions(k);
+				playGame.getOneFigure();
+				board[j].setText("Figura" + playGame.getNmbr());
+				playGame.setFigurePositions(j);
+				
+				playGame.setMyFigures(0);
+				playGame = boardInfo.getNextPlayer();			
+				
+			}
+		}else {
+			state = new GameState(clicks, boardInfo.getP1().getFigurePositions(), boardInfo.getP2().getFigurePositions(), false);
+			Move move = ((Opponent) playGame).getNexMove(state, lastMove);						
+			((Opponent) playGame).printMoves();
+			System.out.println("Picked move:" + move.figIdx +" "+move.fromIdx+" "+move.toIdx+" "+move.tileIdx);
+			moveFigure(move.fromIdx);
+			moveFigure(move.toIdx);
+			if(playGame.isFigureIsMoved()) {
+				playGame.setFigureIsMoved(false);
+				putTile(move.tileIdx);
+			}
+			
+		}
+	}
 
-	private void initMove(int i) {
+	private void initMove(int i) {		
+		
 		if (playGame.getOneFigure() > 0) {
 			if (!(board[i].getText().equals("Figura1") || board[i].getText().equals("Figura2"))) {
 				board[i].setText("Figura" + playGame.getNmbr());
 				playGame.setFigurePositions(i);
-				if (playGame.getMyFigures() == 0)
-					playGame = boardInfo.getNextPlayer();
+				
+				if (playGame.getMyFigures() == 0) {
+					playGame = boardInfo.getNextPlayer();	
+					
+					if(playGame.getMyFigures() > 0) {	
+						if(playGame instanceof Opponent) {		
+							Random random = new Random();
+							int k = random.nextInt(25) , j = random.nextInt(25);
+							
+							while (board[k].getText().equals("Figura1") || board[k].getText().equals("Figura2") || k==j)
+								k = random.nextInt(25);
+							
+							while (board[j].getText().equals("Figura1") || board[j].getText().equals("Figura2") || k == j)
+								j = random.nextInt(25);
+							
+							board[k].setText("Figura" + playGame.getNmbr());
+							playGame.setFigurePositions(k);
+							playGame.getOneFigure();
+							board[j].setText("Figura" + playGame.getNmbr());
+							playGame.setFigurePositions(j);
+							
+							playGame.setMyFigures(0);
+							playGame = boardInfo.getNextPlayer();				
+							
+						}
+					}
+				}
 			} else {
 				playGame.setMyFigures(playGame.getMyFigures() + 1);
 				new Error("Ponovi potez");
 			}
 		}
+		
 	}
 
 	private void putTile(int i) {
@@ -102,7 +184,8 @@ public class GameBoard extends JFrame {
 
 				if (!board[i].getText().equals("KUPOLA")) {
 					clicks[i]++;
-					board[i].setBackground(Color.BLUE);
+					board[i].setBackground(Color.GRAY);
+					lastMove.setTileIdx(i);
 				}
 
 				if (clicks[i] == 4) {
@@ -111,17 +194,18 @@ public class GameBoard extends JFrame {
 					board[i].setBackground(Color.RED);
 				} else
 					board[i].setText("" + clicks[i]);
+				
 				playGame.setDoTiles(false);
 				playGame.setFrom(-1);
 				playGame.setTo(-1);
 				playGame = boardInfo.getNextPlayer();
-
+				 
 				if (!checkForAnotherMove(playGame.getFigurePositions()[0])
-						&& !checkForAnotherMove(playGame.getFigurePositions()[1]))
+				&& !checkForAnotherMove(playGame.getFigurePositions()[1]))
 					new GameEndInfo("Izgubio je igrac: " + playGame.getName(), board);
 
 			} else {
-				new Error("Ne moze se ovde postaviti plocica! Izaberite drugo polje!");
+				new Error("Ne moze se ovde postaviti plocica! Izaberite drugo polje !");
 			}
 		} else {
 			new Error("Ne moze se ovde postaviti plocica! Izaberite drugo polje!");
@@ -134,6 +218,8 @@ public class GameBoard extends JFrame {
 			if ((playGame.getNmbr() == 1 && board[i].getText().equals("Figura1"))
 					|| (playGame.getNmbr() == 2 && board[i].getText().equals("Figura2"))) {
 				playGame.setFrom(i);
+				lastMove.setFigIdx(playGame.getFigureindex(i));
+				lastMove.setFromIdx(i);
 			} else {
 				new Error("Izaberite Vasu figuru!");
 			}
@@ -144,7 +230,7 @@ public class GameBoard extends JFrame {
 
 				if (((clicks[playGame.getFrom()] == clicks[i]) || (clicks[playGame.getFrom()] + 1 == clicks[i])) && OK
 						&& !(board[i].getText().equals("KUPOLA"))) {
-
+					
 					board[i].setText(board[playGame.getFrom()].getText());
 					board[playGame.getFrom()].setText("");
 
@@ -152,8 +238,8 @@ public class GameBoard extends JFrame {
 						new GameEndInfo("Igrac " + playGame.getName() + " je pobedio!", board);
 
 					playGame.setFigureIsMoved(true);
-
-					if (board[playGame.getFrom()].getBackground().equals(Color.BLUE)) {
+					lastMove.setToIdx(i);
+					if (board[playGame.getFrom()].getBackground().equals(Color.GRAY)) {
 						board[playGame.getFrom()].setText(clicks[playGame.getFrom()] + "");
 					}
 
@@ -164,6 +250,7 @@ public class GameBoard extends JFrame {
 						new Error("Odredisno polje nije dobro izabrano!");
 					else {
 						new Error("Pokusajte ponovo");
+					
 					}
 				}
 			} else
@@ -172,7 +259,7 @@ public class GameBoard extends JFrame {
 
 	}
 
-	private boolean checkForAnotherMove(int from) {
+	public boolean checkForAnotherMove(int from) {
 		int level = clicks[from];
 
 		switch (from) {
@@ -366,11 +453,12 @@ public class GameBoard extends JFrame {
 		return false;
 	}
 
-	private void buttonFunc(int i) {
-
-		if (playGame.getMyFigures() > 0)
-			initMove(i);
-		else {
+	
+	private void buttonFunc(int i) {	
+		
+		if (playGame.getMyFigures() > 0) {					
+				initMove(i);
+		}else {
 
 			if (playGame.isFigureIsMoved()) {
 				playGame.setFigureIsMoved(false);
@@ -381,16 +469,38 @@ public class GameBoard extends JFrame {
 
 			if (playGame.isDoTiles()) {
 				putTile(i);
-
+				if(playGame instanceof Opponent) {
+					state = new GameState(clicks, boardInfo.getP1().getFigurePositions(), boardInfo.getP2().getFigurePositions(), false);
+				
+				Move move = ((Opponent) playGame).getNexMove(state, lastMove);						
+				((Opponent) playGame).printMoves();			
+					
+							playGame.setFigureIsMoved(false);
+							playGame.setDoTiles(true);
+							moveFigure(move.getFromIdx());
+							moveFigure(move.getToIdx());
+							if(playGame.isFigureIsMoved()) {										
+								playGame.setFigureIsMoved(false);
+								putTile(move.getTileIdx());
+							}
+						
+					}
+				}
 			}
 		}
 
-	}
+	
 
 	/*
 	 * @button table listeners
 	 */
 	private void addListeners() {
+		
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				sledeciKorak(0);
+			}
+		});
 
 		board[0].addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -586,4 +696,10 @@ public class GameBoard extends JFrame {
 		return false;
 	}
 
+	public boolean isEndGame() {
+		return endGame;
+	}
+
+	
+	
 }
